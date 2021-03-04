@@ -83,8 +83,18 @@ def test_remove_face():
     K.remove_face([1,4])
     assert set(K.facets()) == set(octahedron.facets())
 
+    # Check that adding a face of higher dimension works.
     K.add_face([1,2,3,4])
-    #assert set(K.facets()) == set([[1,2,3,4], [1,3,5], [1,5,6], [1,2,6], [3,4,5], [4,5,6], [2,4,6]])
+    assert set(K.facets()) == {(1,2,3,4), (1,3,5), (1,5,6), (1,2,6),
+                                   (3,4,5), (4,5,6), (2,4,6)}
+    assert K.get_dimension() == 3
+
+    # Check that adding a new disjoint vertex works.
+    K.add_face([7])
+    assert set(K.facets()) == {(1,2,3,4), (1,3,5), (1,5,6), (1,2,6),
+                                   (3,4,5), (4,5,6), (2,4,6), (7,)}
+    assert K.vertices() == {1,2,3,4,5,6,7}
+
 
 
 def test_deletion():
@@ -148,13 +158,3 @@ def test_remove_face():
     L = SimplicialComplex([[1,2,3],[2,3,4]])
     L.remove_face([])
     assert L.get_rank() == 0
-
-
-
-if __name__ == '__main__':
-    K = SimplicialComplex([[1,2,3], [1,3,5], [1,5,6], [1,2,6],
-                                    [2,3,4], [3,4,5], [4,5,6], [2,4,6]])
-    print(K.deletion([1]))
-    K.add_face([1,2,3,4])
-    print(K.f_vector())
-    print(K)
