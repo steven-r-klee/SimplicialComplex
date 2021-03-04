@@ -412,9 +412,10 @@ class SimplicialComplex:
     def add_face(self, new_face):
         """Adds the given new face to the simplicial complex.
         """
-        new_simplex = Simplex(sorted(new_face)).faces()
-        for i in range(-1, new_simplex.rank):
-            for face in new_simplex[i]:
+        new_face = tuple(sorted(new_face))
+        new_simplex = Simplex(new_face)
+        for i in range(-1, new_simplex.get_rank()):
+            for face in new_simplex.faces()[i]:
                 # It could happen that the new face has larger dimension than
                 # the given complex. In this case, we need to add new keys to
                 # the dictionary before adding the new faces.
@@ -422,6 +423,14 @@ class SimplicialComplex:
                     self.face_dictionary[i] = set([face])
                 else:
                     self.face_dictionary[i].add(face)
+
+        # Update the dimension, rank, and vertex_set attributes of the
+        # simplicial complex to account for the fact that we may have
+        # changed the dimension or increased the number of vertices.
+        self.dimension = max(self.face_dictionary.keys())
+        self.rank = self.dimension + 1
+        new_vertices = [v for v in new_face if v not in self.vertex_set]
+        self.vertex_set = self.vertex_set.union(new_vertices)
 
     def link(self, F):
         """Returns the link of face F in the given simplicial complex.
@@ -455,14 +464,16 @@ class SimplicialComplex:
 
         # Form a new simplicial complex, deletion, whose faces are faces of
         # the original simplicial complex that do not contain the deleted face.
-        deletion = SimplicialComplex()
+        deleted_complex = SimplicialComplex([])
         for i in range(-1, self.rank):
             for face in self.face_dictionary[i]:
+                ##print(face, any(vertex not in face for vertex in deleted_face))
                 # deleted face is not contained in face if there exists a
                 # vertex in deleted_face that does not belong to face
                 if any(vertex not in face for vertex in deleted_face):
-                    deletion.add_face(face)
-        return deletion
+                    deleted_complex.add_face(face)
+
+        return deleted_complex
 
     def remove_face(self, deleted_face):
         """Removes the given face from the simplicial complex.
@@ -484,3 +495,18 @@ class SimplicialComplex:
             # of dimension i, then remove that key from the face dictionary.
             if self.face_dictionary[i] == set():
                 del self.face_dictionary[i]
+
+        # If we deleted everything, add the empty face back in. We do not allow
+        # for an empty complex.
+        if len(self.face_dictionary.keys()) == 0:
+            self.face_dictionary[-1] = set(tuple([]))
+
+        # Update the dimension, rank, and vertex_set attributes of the
+        # simplicial complex to account for the fact that we may have
+        # changed the dimension or increased the number of vertices.
+        self.dimension = max(self.face_dictionary.keys())
+        self.rank = self.dimension + 1
+        if self.dimension > -1:
+            self.vertex_set = set([v[0] for v in self.face_dictionary[0]])
+        else:
+            self.vertex_set = set()
