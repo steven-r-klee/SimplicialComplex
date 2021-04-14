@@ -510,3 +510,21 @@ class SimplicialComplex:
             self.vertex_set = set([v[0] for v in self.face_dictionary[0]])
         else:
             self.vertex_set = set()
+
+
+
+    def is_vertex_decomposable(self):
+        d = self.dimension
+        if not self.is_pure():
+            return (False, -1)
+        if len(self.face_dictionary[d]) == 1:
+            return (True, list(self.vertex_set))
+        for v in self.vertices():
+            L = self.link([v])
+            D = self.deletion([v])
+            if D.dimension  == d and L.dimension == d-1:
+                lk_is, lk_order = L.is_vertex_decomposable()
+                del_is, del_order = D.is_vertex_decomposable()
+                if lk_is and del_is:
+                    return (True, [v] + del_order)
+        return (False, -1)

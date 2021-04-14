@@ -158,3 +158,10 @@ def test_remove_face():
     L = SimplicialComplex([[1,2,3],[2,3,4]])
     L.remove_face([])
     assert L.get_rank() == 0
+
+def test_is_vertex_decomposable():
+    assert octahedron.is_vertex_decomposable()[0]
+    assert not projective_plane.is_vertex_decomposable()[0]
+    assert not non_pure_complex.is_vertex_decomposable()[0]
+    K = SimplicialComplex([[1,2],[2,3],[3,4],[1,4]])
+    assert K.is_vertex_decomposable()[0] 
